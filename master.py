@@ -1,3 +1,3 @@
-import LMS_filter
+import functions as f
 
-LMS_filter.lms_filter()
+f.lms_filter()
