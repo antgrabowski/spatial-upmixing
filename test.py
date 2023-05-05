@@ -62,25 +62,26 @@ def guided_nmf(audio, n_components, n_iter, n_fft, hop_length, beta):
         D (array): Dictionary 
         A (array): Activation 
     """
-    # get the magnitude spectrogram
+    # compute the STFT
     X = librosa.stft(audio, n_fft=n_fft, hop_length=hop_length)
-    X = np.abs(X)
 
-    # initialize the dictionary and activation matrices
-    D = np.random.rand(X.shape[0], n_components)
+    # initialize the basis vectors
+    H = np.random.rand(n_fft // 2 + 1, n_components)
+
+    # initialize the activation vectors
     A = np.random.rand(n_components, X.shape[1])
 
     # iterate
     for i in range(n_iter):
-        # update the activation matrix
-        A = A * (np.dot(D.T, X) / (np.dot(np.dot(D.T, D), A) + 1e-9))
+        # update the activation vectors
+        A = A * np.dot(H.T, X) / np.dot(np.dot(D.T, D), A)
 
-        # update the dictionary matrix
-        D = D * (np.dot(X, A.T) / (np.dot(np.dot(D, A), A.T) + 1e-9))
+        # update the basis vectors
+        D = D * np.dot(X, A.T) / np.dot(np.dot(D, A), A.T)
 
-    return D, A
+    # separate the sources using the basis vectors and activation vectors
     
-
+    
 def apply_sofa_filter(audio, sofa_file, source, receiver):
     """
     Applies a SOFA filter to an audio signal.

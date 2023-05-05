@@ -108,23 +108,24 @@ def apply_sofa_filter(audio, sofa_file, source, receiver):
     return audio_out
 
 # wiener filter taking the NMF output as input and returning the separated sources
-def wiener_filter(audio, n_components, n_fft, hop_length, fs):
+def wiener_filter(audio_sfft, A_sig , D_sig, A_amb, D_amb):
     """
     Applies a Wiener filter to an audio signal.
 
     Args:
-        audio (array): Audio signal.
-        n_components (int): Number of components.
+        audio_sfft (array): Audio signal in the frequency domain.
+        A_sig (array): Activation matrix for the signal.
+        D_sig (array): Dictionary matrix for the signal.
+        A_amb (array): Activation matrix for the ambient sound.
+        D_amb (array): Dictionary matrix for the ambient sound.
         n_fft (int): FFT size.
-        hop_length (int): Hop length.
-        fs (int): Sampling frequency.
 
     Returns:
         audio_out (array): Filtered audio signal.
     """
+
     # get the magnitude spectrogram
-    X = librosa.stft(audio, n_fft=n_fft, hop_length=hop_length)
-    X = np.abs(X)
+    X = np.abs(audio_fft)
 
     # get the power spectrogram
     P = np.power(X, 2)
@@ -145,3 +146,4 @@ def wiener_filter(audio, n_components, n_fft, hop_length, fs):
     audio_out = librosa.istft(audio_out, hop_length=hop_length)
 
     return audio_out
+
