@@ -6,6 +6,7 @@ from scipy.signal import hann, stft
 # load an audio file 
 audio, fs = librosa.load('twoPianoTones.wav', sr=None)
 
+# parameters
 segment_time = 0.05
 segment_length = 2 * round(segment_time * fs / 2)  # ensure an even segment length
 window = np.sqrt(hann(segment_length, sym=False))
@@ -34,7 +35,6 @@ separated_sources = f.wiener_nmf_separation(stft_out, D, A, window, n_overlap)
 max_value = np.max(np.abs(separated_sources))
 for i in range(n_sources):
     separated_sources[i] = separated_sources[i] / (max_value * 0.9)
-
 
 # binarize the separated sources
 #f.convolve_with_hrir(separated_sources_left[0], separated_sources_right[0], separated_sources_left[1], separated_sources_left[1], 'sofa_name')

@@ -156,7 +156,7 @@ def wiener_nmf_separation(stft, dictionary, activation_matrix, window, n_overlap
         full_stft = np.concatenate((half_stft, np.flipud(np.conj(half_stft[1:-1, :]))), axis=0)
         over_samples_separated_source = np.fft.ifft(full_stft, axis=0)
 
-        # Take the real part of the signal to remove numerical errors.
+        # Take the real part of the signal
         separated_source_matrix = np.real(over_samples_separated_source[:segment_length, :])
 
         # Overlap-add the separated segments to obtain the final separated source.
@@ -182,8 +182,8 @@ def overlap_add(matrix, window, n_segments, n_overlap):
 
     out = np.zeros((n_segments*n_shift+n_overlap), dtype=np.complex128)
     idx = np.arange(segment_length)
-    for j in range(n_segments):
-        out[idx] += window * matrix[:, j]
+    for i in range(n_segments):
+        out[idx] += window * matrix[:, i]
         idx += n_shift
     return out
 
