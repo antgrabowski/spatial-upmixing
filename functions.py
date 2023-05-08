@@ -1,5 +1,5 @@
 import numpy as np
-import pysofaconventions as sofa
+import sofa
 import matplotlib.pyplot as plt
 
 def beta_nmf_mu(S, n_iter, D, A, beta):
@@ -203,27 +203,32 @@ def convolve_with_hrir(signal_front_left, signal_front_right, signal_back_left, 
         right_channel (array): The right channel of the binaural signal.
     """
     # Load the SOFA file
-    mysofa = sofa.SOFAFile(sofa_file_name)
+    mysofa = sofa.SOFAFile(sofa_file_name, 'r')
 
     # Get the impulse responses for the desired angles
-    hrir_azi_front_left = mysofa.get_hrir(-30, 0, 0, 'left')
-    hrir_azi_front_right = mysofa.get_hrir(30, 0, 0, 'right')
-    hrir_azi_back_left = mysofa.get_hrir(-120, 0, 0, 'left')
-    hrir_azi_back_right = mysofa.get_hrir(120, 0, 0, 'right')
+    hrir_azi_front_left_l = mysofa.getDataIR(-30, 0, 0, 'left')
+    hrir_azi_front_left_r = mysofa.getDataIR(-30, 0, 0, 'right')
+    hrir_azi_front_right_l = mysofa.getDataIR(30, 0, 0, 'left')
+    hrir_azi_front_right_r = mysofa.getDataIR(30, 0, 0, 'right')
+    hrir_azi_back_left_l = mysofa.getDataIR(-120, 0, 0, 'left')
+    hrir_azi_back_left_r = mysofa.getDataIR(-120, 0, 0, 'right')
+    hrir_azi_back_right_l = mysofa.getDataIR(120, 0, 0, 'left')
+    hrir_azi_back_right_r = mysofa.getDataIR(120, 0, 0, 'right')
 
     # Convolve the signals with the HRIRs
-    convolved_front_left = np.convolve(signal_front_left, hrir_azi_front_left, mode='same')
-    convolved_front_right = np.convolve(signal_front_right, hrir_azi_front_right, mode='same')
-    convolved_back_left = np.convolve(signal_back_left, hrir_azi_back_left, mode='same')
-    convolved_back_right = np.convolve(signal_back_right, hrir_azi_back_right, mode='same')
+    # Left channel
+    left_channel = np.convolve(signal_front_left, hrir_azi_front_left_l, mode='same')
+    left_channel += np.convolve(signal_front_right, hrir_azi_front_right_l, mode='same')
+    left_channel += np.convolve(signal_back_left, hrir_azi_back_left_l, mode='same')
+    left_channel += np.convolve(signal_back_right, hrir_azi_back_right_l, mode='same')
+    # Right channel
+    right_channel = np.convolve(signal_front_right, hrir_azi_front_right_r, mode='same')
+    right_channel += np.convolve(signal_front_left, hrir_azi_front_left_r, mode='same')
+    right_channel += np.convolve(signal_back_right, hrir_azi_back_right_r, mode='same')
+    right_channel += np.convolve(signal_back_left, hrir_azi_back_left_r, mode='same')
 
     # Normalize the output signals to avoid clipping
-    convolved_front_left /= np.max(np.abs(convolved_front_left))*2
-    convolved_front_right /= np.max(np.abs(convolved_front_right))*2
-    convolved_back_left /= np.max(np.abs(convolved_back_left))*2
-    convolved_back_right /= np.max(np.abs(convolved_back_right))*2
-
-    right_channel = convolved_front_right + convolved_back_right
-    left_channel = convolved_front_left + convolved_back_left
+    left_channel /= np.max(np.abs(left_channel))
+    right_channel /= np.max(np.abs(right_channel))
 
     return left_channel, right_channel

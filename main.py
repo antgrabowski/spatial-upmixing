@@ -36,8 +36,16 @@ max_value = np.max(np.abs(separated_sources))
 for i in range(n_sources):
     separated_sources[i] = separated_sources[i] / (max_value * 0.9)
 
+separated_sources_left = np.zeros((2, len(separated_sources[0])))
+separated_sources_right = np.zeros((2, len(separated_sources[0])))
+
+separated_sources_left[0,:] = separated_sources[0]
+separated_sources_left[1,:] = separated_sources[1]
+separated_sources_right[0,:] = separated_sources[0]
+separated_sources_right[1,:] = separated_sources[1]
+
 # binarize the separated sources
-#f.convolve_with_hrir(separated_sources_left[0], separated_sources_right[0], separated_sources_left[1], separated_sources_left[1], 'sofa_name')
+f.convolve_with_hrir(separated_sources_left[0], separated_sources_right[0], separated_sources_left[1], separated_sources_left[1], sofa_name)
 
 for i in range(n_sources):
     f.plot_data(separated_sources[i], fs, 'Separated source ' + str(i+1) , 'Time (s)', 'Amplitude')
