@@ -31,11 +31,11 @@ def beta_nmf_mu(S, n_iter, D, A, beta):
 
     for iter in range(1, n_iter):
 
-        # Update W
+        # Update D
         D = D * ((S * S_ap ** (beta - 2)) @ A.T) / (S_ap ** (beta - 1) @ A.T)
         S_ap = D @ A
 
-        # Update H
+        # Update A
         A = A * (D.T @ (S * S_ap ** (beta - 2))) / (D.T @ S_ap ** (beta - 1))
         S_ap = D @ A
 
