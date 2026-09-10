@@ -1,11 +1,16 @@
+import argparse
 import functions as f
 import librosa
 import numpy as np
 from scipy.signal import stft
 from scipy.signal.windows import hann
 
-# load an audio file 
-audio, fs = librosa.load('twoPianoTones.wav', sr=None)
+parser = argparse.ArgumentParser(description='Separates the sources in an audio file with NMF and binauralizes them.')
+parser.add_argument('input', help='path to the input audio file')
+args = parser.parse_args()
+
+# load an audio file
+audio, fs = librosa.load(args.input, sr=None)
 
 # parameters
 segment_time = 0.05
