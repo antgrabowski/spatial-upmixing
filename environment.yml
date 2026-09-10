@@ -1,0 +1,16 @@
+name: spatial-upmixing
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - numpy<2.5
+  - scipy
+  - librosa
+  - matplotlib
+  - netcdf4!=1.7.4
+  - beautifulsoup4
+  - requests
+  - packaging
+  - pip
+  - pip:
+      - sofar
