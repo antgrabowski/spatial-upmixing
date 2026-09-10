@@ -1,7 +1,8 @@
 import functions as f
 import librosa
 import numpy as np
-from scipy.signal import hann, stft
+from scipy.signal import stft
+from scipy.signal.windows import hann
 
 # load an audio file 
 audio, fs = librosa.load('twoPianoTones.wav', sr=None)
@@ -45,7 +46,7 @@ separated_sources_right[0,:] = separated_sources[0]
 separated_sources_right[1,:] = separated_sources[1]
 
 # binarize the separated sources
-f.convolve_with_hrir(separated_sources_left[0], separated_sources_right[0], separated_sources_left[1], separated_sources_left[1], sofa_name)
+binaural_left, binaural_right = f.convolve_with_hrir(separated_sources_left[0], separated_sources_right[0], separated_sources_left[1], separated_sources_left[1], sofa_name)
 
 for i in range(n_sources):
     f.plot_data(separated_sources[i], fs, 'Separated source ' + str(i+1) , 'Time (s)', 'Amplitude')

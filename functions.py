@@ -1,5 +1,5 @@
 import numpy as np
-import sofa
+import sofar
 import matplotlib.pyplot as plt
 
 def beta_nmf_mu(S, n_iter, D, A, beta):
@@ -140,7 +140,7 @@ def wiener_nmf_separation(stft, dictionary, activation_matrix, window, n_overlap
     segment_length = len(window)
     n_sources, n_segments = activation_matrix.shape
     n_shift = segment_length - n_overlap
-    separated_sources = np.zeros((n_sources, n_segments*n_shift+n_overlap), dtype=np.complex128)
+    separated_sources = np.zeros((n_sources, n_segments*n_shift+n_overlap))
 
     # Compute the power spectrum of the learned model.
     modelled_power_spectrum = np.dot(dictionary, activation_matrix)
@@ -180,12 +180,36 @@ def overlap_add(matrix, window, n_segments, n_overlap):
     segment_length = len(window)
     n_shift = segment_length - n_overlap
 
-    out = np.zeros((n_segments*n_shift+n_overlap), dtype=np.complex128)
+    out = np.zeros((n_segments*n_shift+n_overlap))
     idx = np.arange(segment_length)
     for i in range(n_segments):
         out[idx] += window * matrix[:, i]
         idx += n_shift
     return out
+
+def get_hrir(hrirs, azimuth, elevation):
+    """
+    Returns the left and right HRIRs measured closest to the given direction.
+
+    Args:
+        hrirs (sofar.Sofa): HRIR set loaded with sofar.read_sofa.
+        azimuth (float): Azimuth in degrees (SOFA convention: counterclockwise, 90 = left).
+        elevation (float): Elevation in degrees.
+
+    Returns:
+        hrir_left (array): The impulse response for the left ear.
+        hrir_right (array): The impulse response for the right ear.
+    """
+    positions = np.radians(np.asarray(hrirs.SourcePosition)[:, :2])
+    azimuth, elevation = np.radians(azimuth), np.radians(elevation)
+
+    # Pick the nearest measured direction by angular distance (handles azimuth wrap-around, e.g. -30 vs 330)
+    cos_angle = np.sin(positions[:, 1]) * np.sin(elevation) \
+                + np.cos(positions[:, 1]) * np.cos(elevation) * np.cos(positions[:, 0] - azimuth)
+    idx = np.argmax(cos_angle)
+
+    # Receiver 0 is the left ear (positive y in SOFA coordinates)
+    return hrirs.Data_IR[idx, 0, :], hrirs.Data_IR[idx, 1, :]
 
 def convolve_with_hrir(signal_front_left, signal_front_right, signal_back_left, signal_back_right, sofa_file_name):
     """
@@ -203,17 +227,13 @@ def convolve_with_hrir(signal_front_left, signal_front_right, signal_back_left, 
         right_channel (array): The right channel of the binaural signal.
     """
     # Load the SOFA file
-    mysofa = sofa.SOFAFile(sofa_file_name, 'r')
+    hrirs = sofar.read_sofa(sofa_file_name, verbose=False)
 
     # Get the impulse responses for the desired angles
-    hrir_azi_front_left_l = mysofa.getDataIR(-30, 0, 0, 'left')
-    hrir_azi_front_left_r = mysofa.getDataIR(-30, 0, 0, 'right')
-    hrir_azi_front_right_l = mysofa.getDataIR(30, 0, 0, 'left')
-    hrir_azi_front_right_r = mysofa.getDataIR(30, 0, 0, 'right')
-    hrir_azi_back_left_l = mysofa.getDataIR(-120, 0, 0, 'left')
-    hrir_azi_back_left_r = mysofa.getDataIR(-120, 0, 0, 'right')
-    hrir_azi_back_right_l = mysofa.getDataIR(120, 0, 0, 'left')
-    hrir_azi_back_right_r = mysofa.getDataIR(120, 0, 0, 'right')
+    hrir_azi_front_left_l, hrir_azi_front_left_r = get_hrir(hrirs, 30, 0)
+    hrir_azi_front_right_l, hrir_azi_front_right_r = get_hrir(hrirs, -30, 0)
+    hrir_azi_back_left_l, hrir_azi_back_left_r = get_hrir(hrirs, 120, 0)
+    hrir_azi_back_right_l, hrir_azi_back_right_r = get_hrir(hrirs, -120, 0)
 
     # Convolve the signals with the HRIRs
     # Left channel
